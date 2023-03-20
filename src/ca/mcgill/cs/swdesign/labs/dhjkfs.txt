@@ -1,0 +1,94 @@
+//COMPOSITE
+public interface Item {
+    String name();
+    float price();
+}
+
+public class SingleItem implements Item {
+
+    private final String name;
+    private final float price;
+
+    public SingleItem(String name, float price) {
+        this.name = name;
+        this.price = price;
+    }
+
+    @Override
+    public String name() {
+        return name;
+    }
+
+    @Override
+    public float price() {
+        return price;
+    }
+}
+
+public class ComboItem implements Item {
+
+    private final String name;
+    private final Item[] items;
+
+    public ComboItem(String name, Item... items) {
+        this.name = name;
+        this.items = items;
+    }
+
+    @Override
+    public String name() {
+        return name;
+    }
+    
+    @Override
+    public float price() {
+        // In this case, you could have saved the price upon creation and avoid
+        // calculating it each time; this is just for show
+        return (float) (Arrays.stream(items).mapToDouble(Item::price).sum() * 0.9);
+    }
+
+}
+
+//DECORATOR
+
+public class GiftItem implements Item {
+
+    private final Item item;
+
+    public GiftItem(Item item) {
+        this.item = item;
+    }
+
+    @Override
+    public String name() {
+        return "???";
+    }
+
+    @Override
+    public float price() {
+        return item.price() + 0.50f;
+    }
+}
+
+//COMMAND
+
+public interface Command {
+    void execute();
+}
+
+public class ShuffleDeck implements Command {
+
+    private final Deck deck;
+
+    public ShuffleDeck(Deck deck) {
+        this.deck = deck;
+    }
+
+    @Override
+    public void execute() {
+        deck.shuffle();
+    }
+
+}
+
+    
