@@ -1,94 +1,228 @@
-//COMPOSITE
-public interface Item {
-    String name();
-    float price();
+// OBSERVER
+//
+//
+//
+package code;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Observer {
+    public static void main(String[] args) {
+
+        FileSystem fileSystem = new FileSystem(10);
+        FileSystemMonitor monitor = new FileSystemMonitor(fileSystem);
+
+        fileSystem.setFiles(20);
+        fileSystem.setFiles(30);
+
+    }
 }
 
-public class SingleItem implements Item {
+interface FileSystemObserver {
+    void update();
+}
 
-    private final String name;
-    private final float price;
+interface FileSystemObservable {
+    void addObserver(FileSystemObserver observer);
 
-    public SingleItem(String name, float price) {
-        this.name = name;
-        this.price = price;
+    void removeObserver(FileSystemObserver observer);
+
+    void notifyObservers();
+
+    int getFiles();
+}
+
+class FileSystemMonitor implements FileSystemObserver {
+    private FileSystemObservable fileSystem;
+
+    public FileSystemMonitor(FileSystemObservable fileSystem) {
+        this.fileSystem = fileSystem;
+        this.fileSystem.addObserver(this);
     }
 
     @Override
-    public String name() {
+    public void update() {
+        System.out.println("Number of files changed to: " + fileSystem.getFiles());
+    }
+}
+
+class FileSystem implements FileSystemObservable {
+    private int files;
+    private List<FileSystemObserver> observers = new ArrayList<>();
+
+    public FileSystem(int files) {
+        this.files = files;
+    }
+
+    public int getFiles() {
+        return files;
+    }
+
+    public void setFiles(int files) {
+        this.files = files;
+        notifyObservers();
+    }
+
+    @Override
+    public void addObserver(FileSystemObserver observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void removeObserver(FileSystemObserver observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers() {
+        for (FileSystemObserver observer : observers) {
+            observer.update();
+        }
+    }
+}
+
+// VISITOR
+//
+//
+//
+package code;
+
+public class Visitor {
+    public static void main(String[] args) {
+        Website[] sites = {
+                new NormalSite("www.github.com"),
+                new CloudflaredSite("www.google.com"),
+        };
+
+        WebsiteVisitor visitor = new SiteVisitor();
+
+        for (Website site : sites) {
+            site.accept(visitor);
+        }
+    }
+}
+
+interface WebsiteVisitor {
+
+    void visit(NormalSite site);
+
+    void visit(CloudflaredSite site);
+
+}
+
+class SiteVisitor implements WebsiteVisitor {
+
+    @Override
+    public void visit(NormalSite site) {
+        System.out.println("Visiting site " + site.getName() + ", no verification needed");
+    }
+
+    @Override
+    public void visit(CloudflaredSite site) {
+        System.out.println("Visiting Cloudflare protected site " + site.getName() + ", bypassing Cloudflare...");
+    }
+}
+
+abstract class Website {
+
+    private String name;
+
+    public Website(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
         return name;
     }
 
+    public abstract void accept(WebsiteVisitor visitor);
+}
+
+class NormalSite extends Website {
+
+    public NormalSite(String name) {
+        super(name);
+    }
+
     @Override
-    public float price() {
-        return price;
+    public void accept(WebsiteVisitor visitor) {
+        visitor.visit(this);
     }
 }
 
-public class ComboItem implements Item {
+class CloudflaredSite extends Website {
 
-    private final String name;
-    private final Item[] items;
-
-    public ComboItem(String name, Item... items) {
-        this.name = name;
-        this.items = items;
+    public CloudflaredSite(String name) {
+        super(name);
     }
 
     @Override
-    public String name() {
-        return name;
-    }
-    
-    @Override
-    public float price() {
-        // In this case, you could have saved the price upon creation and avoid
-        // calculating it each time; this is just for show
-        return (float) (Arrays.stream(items).mapToDouble(Item::price).sum() * 0.9);
-    }
-
-}
-
-//DECORATOR
-
-public class GiftItem implements Item {
-
-    private final Item item;
-
-    public GiftItem(Item item) {
-        this.item = item;
-    }
-
-    @Override
-    public String name() {
-        return "???";
-    }
-
-    @Override
-    public float price() {
-        return item.price() + 0.50f;
+    public void accept(WebsiteVisitor visitor) {
+        visitor.visit(this);
     }
 }
 
-//COMMAND
+// ABSTRACT CLASS 
+//
+//
+package code;
 
-public interface Command {
-    void execute();
+public class AbstractClass {
+
+    public static void main(String[] args) {
+
+        ChessPiece king = new ChessPieceKing("white", 0, 0);
+        ChessPiece rook = new ChessPieceRook("black", 0, 0);
+
+        king.getMove();
+        rook.getMove();
+
+    }
 }
 
-public class ShuffleDeck implements Command {
+abstract class ChessPiece {
+    private String color;
+    private int x, y;
 
-    private final Deck deck;
+    public ChessPiece(String color, int x, int y) {
+        this.color = color;
+        this.x = x;
+        this.y = y;
+    }
 
-    public ShuffleDeck(Deck deck) {
-        this.deck = deck;
+    public String getColor() {
+        return color;
+    }
+
+    public void getMove() {
+        System.out.println(color + ": " + move());
+    }
+
+    // abstract method, every subclass moves differently
+    protected abstract String move();
+}
+
+class ChessPieceKing extends ChessPiece {
+
+    public ChessPieceKing(String color, int x, int y) {
+        super(color, x, y);
     }
 
     @Override
-    public void execute() {
-        deck.shuffle();
+    protected String move() {
+        return ("King moves one square in any direction");
     }
-
 }
 
-    
+class ChessPieceRook extends ChessPiece {
+
+    public ChessPieceRook(String color, int x, int y) {
+        super(color, x, y);
+    }
+
+    @Override
+    protected String move() {
+        return ("Rook moves any number of squares in a horizontal or vertical direction");
+    }
+}
